@@ -94,3 +94,8 @@ def calculate_dataset_statistics(imgs: List[str], input_shape: (int, int)) -> (l
     total_std = torch.sqrt(total_var)
 
     return total_mean.tolist(), total_std.tolist()
+
+
+class RGB2BGR(transforms.Lambda):
+    def __init__(self):
+        super().__init__(lambda img: img.flip(-3))
