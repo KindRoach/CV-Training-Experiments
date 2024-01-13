@@ -13,7 +13,10 @@ This project targets to figure out how them impact the training results.
 ## Download Dataset
 
 Download dataset from [BIRDS 525 SPECIES](https://www.kaggle.com/datasets/gpiosenka/100-bird-species) 
-and unzip them to directory `data`.
+and unzip it to directory `data/birds525`.
+
+Download dataset from [Caltech 256 Image Dataset](https://www.kaggle.com/datasets/jessicali9530/caltech256/data)
+and unzip it to directory `data/objects256/images`.
 
 ## Install Python Env
 

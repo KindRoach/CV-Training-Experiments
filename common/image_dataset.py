@@ -21,7 +21,7 @@ class ImageDataset(Dataset):
         return len(self.images_path)
 
     def __getitem__(self, idx):
-        image = Image.open(self.images_path[idx])
+        image = Image.open(self.images_path[idx]).convert('RGB')
         image = self.transform(image)
         label = torch.tensor(self.labels[idx], dtype=torch.long)
         return image, label
@@ -85,7 +85,7 @@ def calculate_dataset_statistics(imgs: List[str], input_shape: (int, int)) -> (l
     p_sum = torch.zeros(3, dtype=torch.float64)
     p_sum_sq = torch.zeros(3, dtype=torch.float64)
     for img in tqdm(imgs, desc="Calculating mean and std"):
-        img = Image.open(img)
+        img = Image.open(img).convert('RGB')
         img = transform(img)
         p_sum += img.sum(dim=(1, 2))
         p_sum_sq += (img ** 2).sum(dim=(1, 2))

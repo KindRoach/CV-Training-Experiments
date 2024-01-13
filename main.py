@@ -3,7 +3,7 @@ import torch
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from torchvision.transforms import transforms
 
-from common import birds_525
+from common import birds525, objects256
 from common.cspresnet50 import CspResNet50Args, CspResNet50
 from common.image_dataset import ImageDataModule, RGB2BGR, ResizeKeepAspectRatio
 
@@ -11,7 +11,14 @@ torch.set_float32_matmul_precision('medium')
 
 
 def main():
-    imgs, labels = birds_525.load_img_labels()
+    # birds 525
+    # imgs, labels = birds525.load_img_labels()
+    # mean, std = [0.474, 0.469, 0.395], [0.236, 0.230, 0.252]
+
+    # objects 256
+    imgs, labels = objects256.load_img_labels()
+    mean, std = [0.552, 0.533, 0.505], [0.315, 0.312, 0.326]
+
     n_class = max(max(x) for x in labels) + 1
 
     args = CspResNet50Args(
@@ -45,13 +52,13 @@ def main():
     rgb_normalize_transform = transforms.Compose([
         transforms.Resize(input_size),
         transforms.ToTensor(),
-        transforms.Normalize([0.474, 0.469, 0.395], [0.236, 0.230, 0.252])
+        transforms.Normalize(mean, std)
     ])
 
     bgr_normalize_transform = transforms.Compose([
         transforms.Resize(input_size),
         transforms.ToTensor(),
-        transforms.Normalize([0.474, 0.469, 0.395], [0.236, 0.230, 0.252]),
+        transforms.Normalize(mean, std),
         RGB2BGR()
     ])
 
@@ -70,7 +77,7 @@ def main():
     ])
 
     model = CspResNet50(**args.__dict__)
-    data_module = ImageDataModule(imgs, labels, bgr_aa_transform, args.batch_size)
+    data_module = ImageDataModule(imgs, labels, rgb_normalize_transform, args.batch_size)
 
     trainer.fit(model, data_module)
     trainer.test(model, data_module, verbose=True)

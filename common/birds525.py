@@ -7,8 +7,10 @@ def load_img_labels() -> Tuple[
     Tuple[List[str], List[str], List[str]],
     Tuple[List[int], List[int], List[int]]
 ]:
-    anno = pandas.read_csv("data/birds.csv")
-    anno["filepaths"] = "data/" + anno["filepaths"]
+    data_root = "data/birds525"
+
+    anno = pandas.read_csv(f"{data_root}/birds.csv")
+    anno["filepaths"] = f"{data_root}/" + anno["filepaths"]
 
     train_anno = anno.loc[anno["data set"] == "train"]
     val_anno = anno.loc[anno["data set"] == "valid"]
