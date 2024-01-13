@@ -4,6 +4,8 @@ from typing import List, Tuple
 import pytorch_lightning as pl
 import torch
 from PIL import Image
+from kornia.color import rgb_to_bgr
+from kornia.geometry import warp_affine
 from torch.utils.data import Dataset, DataLoader
 from torchvision.transforms import Compose, transforms
 from tqdm import tqdm
@@ -98,4 +100,33 @@ def calculate_dataset_statistics(imgs: List[str], input_shape: (int, int)) -> (l
 
 class RGB2BGR(transforms.Lambda):
     def __init__(self):
-        super().__init__(lambda img: img.flip(-3))
+        super().__init__(lambda img: rgb_to_bgr(img))
+
+
+class ResizeKeepAspectRatio(transforms.Lambda):
+    def __init__(self, target_size: (int, int)):
+        def resize_keep_aspect_ratio(img):
+            sh = img.shape[-2]
+            sw = img.shape[-1]
+            dh = target_size[0]
+            dw = target_size[1]
+
+            scale = min(dw / sw, dh / sh)
+
+            scx = sw * 0.5
+            scy = sh * 0.5
+
+            dcx = dw * 0.5
+            dcy = dh * 0.5
+
+            x_offset = dcx - scx * scale
+            y_offset = dcy - scy * scale
+
+            mat = torch.tensor([[
+                [scale, 0, x_offset],
+                [0, scale, y_offset],
+            ]])
+
+            return warp_affine(img.unsqueeze(0), mat, (dh, dw)).squeeze(0)
+
+        super().__init__(resize_keep_aspect_ratio)

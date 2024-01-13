@@ -5,7 +5,7 @@ from torchvision.transforms import transforms
 
 from common import birds_525
 from common.cspresnet50 import CspResNet50Args, CspResNet50
-from common.image_dataset import ImageDataModule, RGB2BGR
+from common.image_dataset import ImageDataModule, RGB2BGR, ResizeKeepAspectRatio
 
 torch.set_float32_matmul_precision('medium')
 
@@ -40,19 +40,37 @@ def main():
         precision="16-mixed",
         callbacks=[checkpoint_callback, early_stop_callback])
 
-    model = CspResNet50(**args.__dict__)
+    input_size = (256, 192)
 
-    transform = transforms.Compose([
-        transforms.Resize((256, 192)),
+    rgb_normalize_transform = transforms.Compose([
+        transforms.Resize(input_size),
         transforms.ToTensor(),
         transforms.Normalize([0.474, 0.469, 0.395], [0.236, 0.230, 0.252])
     ])
 
-    convert_rgb_to_bgr = True
-    if convert_rgb_to_bgr:
-        transform.transforms.append(RGB2BGR())
+    bgr_normalize_transform = transforms.Compose([
+        transforms.Resize(input_size),
+        transforms.ToTensor(),
+        transforms.Normalize([0.474, 0.469, 0.395], [0.236, 0.230, 0.252]),
+        RGB2BGR()
+    ])
 
-    data_module = ImageDataModule(imgs, labels, transform, args.batch_size)
+    bgr_transform = transforms.Compose([
+        transforms.Resize(input_size),
+        transforms.PILToTensor(),
+        RGB2BGR(),
+        transforms.ConvertImageDtype(torch.float)
+    ])
+
+    bgr_aa_transform = transforms.Compose([
+        transforms.PILToTensor(),
+        transforms.ConvertImageDtype(torch.float),
+        ResizeKeepAspectRatio(input_size),
+        RGB2BGR()
+    ])
+
+    model = CspResNet50(**args.__dict__)
+    data_module = ImageDataModule(imgs, labels, bgr_aa_transform, args.batch_size)
 
     trainer.fit(model, data_module)
     trainer.test(model, data_module, verbose=True)

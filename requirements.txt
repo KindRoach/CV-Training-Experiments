@@ -4,3 +4,4 @@ simple-parsing==0.1.4
 openvino-dev==2023.2
 pandas==2.1.4
 timm==0.9.12
+kornia==0.7.1
